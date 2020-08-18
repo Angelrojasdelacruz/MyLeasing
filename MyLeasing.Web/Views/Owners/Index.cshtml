@@ -2,12 +2,14 @@
 
 @{
     ViewData["Title"] = "Index";
-}
+}12/100
+Turorial 59 - Part 12 - Add Property (1/2)
+
 
 <h2>Owners</h2>
 
 <p>
-    <a asp-action="Create" class="btn-primary" >Create New</a>
+    <a asp-action="Create" class="btn-primary">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -19,16 +21,16 @@
                 @Html.DisplayNameFor(model => model.User.FirstName)
             </th>
             <th>
-                @Html.DisplayNameFor(model =>model.User.LastName)
+                @Html.DisplayNameFor(model => model.User.LastName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.User.Email)
             </th>
             <th>
-                @Html.DisplayNameFor(model  => model.User.Address  )
+                @Html.DisplayNameFor(model => model.User.Address)
             </th>
             <th>
-                @Html.DisplayNameFor(model   => model.User.PhoneNumber)
+                @Html.DisplayNameFor(model => model.User.PhoneNumber)
             </th>
             <th>
                 Properties
@@ -37,35 +39,34 @@
                 Cotracts
             </th>
             <th></th>
-</thead>
+    </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
                 <td>
-                    @Html.DisplayNameFor(modelItem => item.User.Document)
+                    @Html.DisplayFor(modelItem => item.User.Document)
                 </td>
                 <td>
-                <td>
-                    @Html.DisplayNameFor(modelItem => item.User.FirstName)
+                    @Html.DisplayFor(modelItem => item.User.FirstName)
                 </td>
                 <td>
-                    @Html.DisplayNameFor(modelItem => item.User.LastName)
+                    @Html.DisplayFor(modelItem => item.User.LastName)
                 </td>
                 <td>
-                    @Html.DisplayNameFor(modelItem => item.User.Email)
+                    @Html.DisplayFor(modelItem => item.User.Email)
                 </td>
                 <td>
-                    @Html.DisplayNameFor(modelItem  => item.User.Address)
+                    @Html.DisplayFor(modelItem => item.User.Address)
                 </td>
                 <td>
-                    @Html.DisplayNameFor(modelItem =>item.User.PhoneNumber)
+                    @Html.DisplayFor(modelItem => item.User.PhoneNumber)
                 </td>
                 <td>
-                     @Html.DisplayFor(modelItem   =>item.Properties.Count)
+                    @Html.DisplayFor(modelItem => item.Properties.Count)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem   => item.Contracts.Count)
+                    @Html.DisplayFor(modelItem => item.Contracts.Count)
                 </td>
                 <td>
 
