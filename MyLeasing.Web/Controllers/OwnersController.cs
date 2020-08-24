@@ -20,17 +20,21 @@ namespace MyLeasing.Web.Controllers
         private readonly IUserHelper _userHelper;
         private readonly ICombosHelper _combosHelper;
         private readonly IConverterHelper _converterHelper;
+        private readonly IImageHelper _imageHelper;
 
         public OwnersController(
             DataContext datacontext,
            IUserHelper userHelper,
            ICombosHelper combosHelper,
-           IConverterHelper converterHelper)
+           IConverterHelper converterHelper,
+           IImageHelper ImageHelper)
+            
         {
             _datacontext = datacontext;
             _userHelper = userHelper;
             _combosHelper = combosHelper;
             _converterHelper = converterHelper;
+            _imageHelper = ImageHelper;
         }
 
 
@@ -44,27 +48,28 @@ namespace MyLeasing.Web.Controllers
 
 
 
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> DetailsProperty(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var owner = await _datacontext.Owners
-                .Include(o => o.User)
-                .Include(o => o.Properties)
-                .ThenInclude(p => p.propertyImages)
+            var property = await _datacontext.Properties
+                .Include(o => o.Owner)
+                .ThenInclude(o => o.User)
                 .Include(o => o.Contracts)
                 .ThenInclude(c => c.Lessee)
                 .ThenInclude(l => l.User)
-                .FirstOrDefaultAsync(o => o.Id == id);
-            if (owner == null)
+                .Include(o => o.PropertyType)
+                .Include(p => p.PropertyImages)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (property == null)
             {
                 return NotFound();
             }
 
-            return View(owner);
+            return View(property);
         }
 
 
@@ -215,41 +220,122 @@ namespace MyLeasing.Web.Controllers
             return _datacontext.Owners.Any(e => e.Id == id);
         }
 
-        public async Task<IActionResult> AddProperty(int? id)
+        public async Task<IActionResult> EditProperty(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var owner = await _datacontext.Owners.FindAsync(id);
+            var property = await _datacontext.Properties
+                .Include(p => p.Owner)
+                .Include(p => p.PropertyType)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var model = _converterHelper.ToPropertyViewModel(property);
+            return View(model);
+        }
+
+
+            [HttpPost]
+            public async Task<IActionResult> EditProperty(PropertyViewModel model)
+            {
+             if(ModelState.IsValid)
+             {
+                var property = await _converterHelper.ToPropertyAsync(model, false);
+                _datacontext.Properties.Update(property);
+                await _datacontext.SaveChangesAsync();
+                return RedirectToAction($"Details/{model.OwnerId}");
+
+
+             }
+
+              return View(model);
+
+            }
+
+        public async Task<IActionResult> Details(int? id)
+        {
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var owner = await _datacontext.Owners
+                .Include(o => o.User)
+                .Include(o => o.Properties)
+                .ThenInclude(p => p.PropertyImages)
+                .Include(o => o.Contracts)
+                .ThenInclude(c => c.Lessee)
+                .ThenInclude(l => l.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (owner == null)
             {
                 return NotFound();
             }
 
-            var model = new PropertyViewModel
+            return View(owner);
+        }
+
+
+
+        public async Task<IActionResult> AddImage(int? id)
+        {
+            if (id == null)
             {
-                OwnerId = owner.Id,
-                PropertyTypes = _combosHelper.GetComboPropertyTypes()
+                return NotFound();
+            }
+
+            var property = await _datacontext.Properties.FindAsync(id.Value);
+            if (property == null)
+            {
+                return NotFound();
+            } 
+
+            var model = new PropertyImageViewModel
+            {
+                Id = property.Id
             };
 
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddProperty(PropertyViewModel model)
+        public async Task<IActionResult> AddImage(PropertyImageViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var property = await _converterHelper.ToPropertyAsync(model, true);
-                _datacontext.Properties.Add(property);
+                var path = string.Empty;
+
+                if (model.ImageFile != null)
+                {
+                    path = await _imageHelper.UploadImageAsync(model.ImageFile);
+                }
+
+                var propertyImage = new PropertyImage
+                {
+                    ImageUrl = path,
+                    Property = await _datacontext.Properties.FindAsync(model.Id)
+                };
+
+                _datacontext.PropertyImages.Add(propertyImage);
                 await _datacontext.SaveChangesAsync();
-                return RedirectToAction($"Details/{model.OwnerId}");
+                return RedirectToAction($"{nameof(DetailsProperty)}/{model.Id}");
             }
 
             return View(model);
         }
 
+
+
     }
 }
+
+    
