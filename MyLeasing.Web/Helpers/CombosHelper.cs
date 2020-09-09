@@ -5,29 +5,35 @@ using System.Linq;
 
 namespace MyLeasing.Web.Helpers
 {
-
     public class CombosHelper : ICombosHelper
     {
-        private readonly DataContext _dataContext;
+        private readonly DataContext dataContext;
 
-        public CombosHelper(DataContext dataContext)
+        public CombosHelper(DataContext _dataContext)
         {
-            _dataContext = dataContext;
+            dataContext = _dataContext;
         }
 
-        public IEnumerable<SelectListItem> GetComboPropertyTypes()
+        public IEnumerable<SelectListItem> GetComboLessees()
         {
-            var list = _dataContext.PropertyTypes.Select(pt => new SelectListItem
+            throw new System.NotImplementedException();
+        }
+
+        public  IEnumerable<SelectListItem> GetComboPropertyTypes()
+        {
+            var list = dataContext.PropertyTypes.Select(pt => new SelectListItem
             {
                 Text = pt.Name,
-                Value = $" { pt.Id}"
+                Value = $"{pt.Id}"
+
+
             })
                 .OrderBy(pt => pt.Text)
                 .ToList();
 
             list.Insert(0, new SelectListItem
             {
-                Text = "(Select a property type...)",
+                Text = "(Select a Property  Type...)",
                 Value = "0"
 
             });
@@ -36,6 +42,6 @@ namespace MyLeasing.Web.Helpers
             return list;
         }
 
-
     }
 }
+

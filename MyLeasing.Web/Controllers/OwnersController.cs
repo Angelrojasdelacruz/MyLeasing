@@ -220,6 +220,47 @@ namespace MyLeasing.Web.Controllers
             return _datacontext.Owners.Any(e => e.Id == id);
         }
 
+        public async Task<IActionResult> AddProperty(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+
+            }
+            var Owner = await _datacontext.Owners.FindAsync(id);
+            if (Owner == null)
+            {
+                return NotFound();
+            }
+            var model = new PropertyViewModel
+            {
+                OwnerId = Owner.Id,
+                PropertyTypes = _combosHelper.GetComboPropertyTypes()
+
+
+            };
+
+            return View(model);
+
+
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddProperty(PropertyViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var property = await _converterHelper.ToPropertyAsync(model, true);
+                _datacontext.Properties.Add(property);
+                await _datacontext.SaveChangesAsync();
+                return RedirectToAction($"Details/{model.OwnerId}");
+            }
+            return View(model);
+        }
+
+        
+
         public async Task<IActionResult> EditProperty(int? id)
         {
             if (id == null)
@@ -334,6 +375,48 @@ namespace MyLeasing.Web.Controllers
         }
 
 
+
+        public async Task<IActionResult> AddContract(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = await _datacontext.Properties
+                .Include(p => p.Owner)
+                .FirstOrDefaultAsync(p => p.Id == id.Value);
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var model = new ContractViewModel
+            {
+                OwnerId = property.Owner.Id,
+                PropertyId = property.Id,
+                Lessees = _combosHelper.GetComboLessees(),
+                Price = property.Price,
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddYears(1)
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddContract(ContractViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var contract = await _converterHelper.ToContractAsync(model, true);
+                _datacontext.Contracts.Add(contract);
+                await _datacontext.SaveChangesAsync();
+                return RedirectToAction($"{nameof(DetailsProperty)}/{model.PropertyId}");
+            }
+
+            return View(model);
+        }
 
     }
 }
