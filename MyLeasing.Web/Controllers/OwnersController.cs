@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
 using MyLeasing.Web.Helpers;
 using MyLeasing.Web.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -28,7 +27,7 @@ namespace MyLeasing.Web.Controllers
            ICombosHelper combosHelper,
            IConverterHelper converterHelper,
            IImageHelper ImageHelper)
-            
+
         {
             _datacontext = datacontext;
             _userHelper = userHelper;
@@ -259,7 +258,7 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
-        
+
 
         public async Task<IActionResult> EditProperty(int? id)
         {
@@ -284,22 +283,22 @@ namespace MyLeasing.Web.Controllers
         }
 
 
-            [HttpPost]
-            public async Task<IActionResult> EditProperty(PropertyViewModel model)
+        [HttpPost]
+        public async Task<IActionResult> EditProperty(PropertyViewModel model)
+        {
+            if (ModelState.IsValid)
             {
-             if(ModelState.IsValid)
-             {
                 var property = await _converterHelper.ToPropertyAsync(model, false);
                 _datacontext.Properties.Update(property);
                 await _datacontext.SaveChangesAsync();
                 return RedirectToAction($"Details/{model.OwnerId}");
 
 
-             }
-
-              return View(model);
-
             }
+
+            return View(model);
+
+        }
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -338,7 +337,7 @@ namespace MyLeasing.Web.Controllers
             if (property == null)
             {
                 return NotFound();
-            } 
+            }
 
             var model = new PropertyImageViewModel
             {
@@ -418,7 +417,79 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> EditContract(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var contract = await _datacontext.Contracts
+                .Include(p => p.Owner)
+                .Include(p => p.Lessee)
+                .Include(p => p.Property)
+                .FirstOrDefaultAsync(p => p.Id == id.Value);
+            if (contract == null)
+            {
+                return NotFound();
+            }
+
+            return View(_converterHelper.ToContractViewModel(contract));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditContract(ContractViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var contract = await _converterHelper.ToContractAsync(model, false);
+                _datacontext.Contracts.Update(contract);
+                await _datacontext.SaveChangesAsync();
+                return RedirectToAction($"{nameof(DetailsProperty)}/{model.PropertyId}");
+            }
+
+            return View(model);
+        }
+        public async Task<IActionResult> DeleteImage(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var propertyImage = await _datacontext.PropertyImages
+                .Include(pi => pi.Property)
+                .FirstOrDefaultAsync(pi => pi.Id == id.Value);
+            if (propertyImage == null)
+            {
+                return NotFound();
+            }
+
+            _datacontext.PropertyImages.Remove(propertyImage);
+            await _datacontext.SaveChangesAsync();
+            return RedirectToAction($"{nameof(DetailsProperty)}/{propertyImage.Property.Id}");
+        }
+
+        public async Task<IActionResult> DeleteContract(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var contract = await _datacontext.Contracts
+                .Include(c => c.Property)
+                .FirstOrDefaultAsync(c => c.Id == id.Value);
+            if (contract == null)
+            {
+                return NotFound();
+            }
+
+            _datacontext.Contracts.Remove(contract);
+            await _datacontext.SaveChangesAsync();
+            return RedirectToAction($"{nameof(DetailsProperty)}/{contract.Property.Id}");
+        }
     }
 }
 
-    
+

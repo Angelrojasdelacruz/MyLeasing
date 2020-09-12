@@ -16,10 +16,26 @@ namespace MyLeasing.Web.Helpers
 
         public IEnumerable<SelectListItem> GetComboLessees()
         {
-            throw new System.NotImplementedException();
+            var list = dataContext.Lessees.Select(l => new SelectListItem
+            {
+                Text = l.User.FullNameWithDocument,
+                Value = $"{l.Id}"
+            })
+                   .OrderBy(pt => pt.Text)
+                   .ToList();
+
+            list.Insert(0, new SelectListItem
+            {
+                Text = "(Select a lessee...)",
+                Value = "0"
+
+            });
+
+
+            return list;
         }
 
-        public  IEnumerable<SelectListItem> GetComboPropertyTypes()
+        public IEnumerable<SelectListItem> GetComboPropertyTypes()
         {
             var list = dataContext.PropertyTypes.Select(pt => new SelectListItem
             {
@@ -44,4 +60,5 @@ namespace MyLeasing.Web.Helpers
 
     }
 }
+
 
