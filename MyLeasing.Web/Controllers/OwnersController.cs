@@ -493,6 +493,36 @@ namespace MyLeasing.Web.Controllers
             await _datacontext.SaveChangesAsync();
             return RedirectToAction($"{nameof(DetailsProperty)}/{contract.Property.Id}");
         }
+
+        public async Task<IActionResult> DeleteProperty(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = await _datacontext.Properties
+                .Include(p=> p.Owner)
+                .Include(p => p.PropertyImages)
+                .Include(p => p.Contracts)
+                .FirstOrDefaultAsync(pi => pi.Id == id.Value);
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            if(property.Contracts.Count !=0)
+            {
+                ModelState.AddModelError(string.Empty, "The property cant't be deleted because it has contracts");
+                return RedirectToAction($"{nameof(Details)}/{property.Owner.Id}");
+            }
+
+            _datacontext.PropertyImages.RemoveRange(property.PropertyImages);
+            _datacontext.Properties.Remove(property);
+
+            await _datacontext.SaveChangesAsync();
+            return RedirectToAction($"{nameof(Details)}/{property.Owner.Id}");
+        }
     }
 }
 
