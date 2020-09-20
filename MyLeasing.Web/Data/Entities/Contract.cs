@@ -5,9 +5,6 @@ namespace MyLeasing.Web.Data.Entities
 {
     public class Contract
     {
-
-
-
         public int Id { get; set; }
 
         [Required(ErrorMessage = "The field {0} is mandatory.")]
@@ -48,8 +45,8 @@ namespace MyLeasing.Web.Data.Entities
         public Lessee Lessee { get; set; }
 
         public Property Property { get; set; }
-               
-        
+
+
 
     }
 }
